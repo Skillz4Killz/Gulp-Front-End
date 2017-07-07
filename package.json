@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/Skillz4Killz/Gulp-Front-End#readme",
   "devDependencies": {
+    "browser-sync": "^2.18.12",
     "del": "^3.0.0",
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.1",

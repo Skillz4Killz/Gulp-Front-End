@@ -1,30 +1,25 @@
 "use strict";
-const gulp = require('gulp');
-const concat = require('gulp-concat');
-const uglify = require('gulp-uglify');
-const rename = require('gulp-rename');
-const sass = require('gulp-sass');
-const maps = require('gulp-sourcemaps');
-const imagemin = require('gulp-imagemin');
-const del = require('del');
+const gulp = require('gulp'),
+	concat = require('gulp-concat'),
+	uglify = require('gulp-uglify'),
+	rename = require('gulp-rename'),
+	sass = require('gulp-sass'),
+	maps = require('gulp-sourcemaps'),
+	imagemin = require('gulp-imagemin'),
+	del = require('del'),
+	browserSync = require('browser-sync').create();
 
 gulp.task('clean', function() {
 	return del(['dist']);
 })
 
-gulp.task('concatScripts', ['clean'], function() {
+gulp.task('scripts', ['clean'], function() {
 	return gulp.src(['js/global.js', 'js/circle/circle.js', 'js/circle/autogrow.js'])
 	.pipe(maps.init())
 	.pipe(concat('all.min.js'))
-	.pipe(maps.write('./'))
-	.pipe(gulp.dest('dist/scripts'));
-
-});
-
-gulp.task('scripts', ['concatScripts'], function() {
-	return gulp.src('dist/scripts/global.js')
 	.pipe(uglify())
 	.pipe(rename('all.min.js'))
+	.pipe(maps.write('./'))
 	.pipe(gulp.dest('dist/scripts'));
 });
 
@@ -35,6 +30,7 @@ gulp.task('styles', ['clean'], function() {
 	.pipe(rename('all.min.css'))
 	.pipe(maps.write('./'))
 	.pipe(gulp.dest('dist/styles'))
+	.pipe(browserSync.stream());
 });
 
 gulp.task('images', ['clean'], function() {
@@ -47,18 +43,21 @@ gulp.task('images', ['clean'], function() {
 		.pipe(gulp.dest('dist/content'))
 });
 
-gulp.task('watchFiles', function() {
-	gulp.watch('sass/**', ['styles']);
-	gulp.watch('js/**', ['concatScripts'])
-});
-
 gulp.task('build', ['clean', 'scripts', 'styles', 'images'], function() {
 	return gulp.src(['/scripts', '/styles', 'index.html', 'images/**', 'icons/**'], {base: './'})
 		.pipe(gulp.dest('dist'));
 });
 
-gulp.task('serve', ['watchFiles']);
+// Static Server + watching scss/html files
+gulp.task('serve', ['build'], function() {
+
+    browserSync.init({
+        server: "dist"
+    });
+
+    gulp.watch("sass/*", ['build']);
+    gulp.watch("*.html").on('change', browserSync.reload);
+});
 
 gulp.task('default', ['serve'], function() {
-	gulp.start('build');
 });
